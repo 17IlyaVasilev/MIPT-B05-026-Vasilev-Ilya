@@ -1,55 +1,123 @@
-﻿#include <iostream>
+#include <iostream>
 #include <algorithm>
-#include <string>
 #include <vector>
 
 using namespace std;
 
-void LSD(string* a, int n, int m) {
-	char c;
-	for (int i = 0; i < m; i++) {
-		vector<int> b[10];
-		for (int j = 0; j < n; j++) {
-			int d = a[j].length();
-			if (d - i - 1 < 0) {
-				b[0].push_back(j);
+void LSD(vector<long long>& a1) {
+
+	long long b = 1;
+	vector<long long> a;
+	vector < pair<long long, long long >> tm0;
+	vector < pair<long long, long long >> tm1;
+
+	for (int i = 0; i < a1.size(); ++i) {
+
+		tm0.push_back({ a1[i],i });
+
+	}
+
+	while (b <= 64) {
+
+		vector < pair<long long, long long >> tmx0;
+		vector < pair<long long, long long >> tmx1;
+
+		for (auto i : tm0) {
+
+			if (i.first % 2 == 0) {
+
+				tmx0.push_back({ i.first / 2,i.second });
+
 			}
 			else {
-				c = a[j][a[j].size() - i - 1];
-				b[int(c) - 48].push_back(j);
+
+				tmx1.push_back({ i.first / 2,i.second });
+
 			}
+
 		}
-		string* s = new string[n];
-		for (int j = 0; j < n; j++) {
-			s[j] = a[j];
-		}
-		int k = 0;
-		for (int j = 0; j < 10; j++) {
-			for (int l = 0; l < b[j].size(); l++) {
-				a[k] = s[b[j][l]];
-				k++;
+
+		for (auto i : tm1) {
+
+			if (i.first % 2 == 0) {
+
+				tmx0.push_back({ i.first / 2,i.second });
+
 			}
+			else {
+
+				tmx1.push_back({ i.first / 2,i.second });
+
+			}
+
 		}
-		delete[] s;
+
+		tm0.clear();
+		tm1.clear();
+
+		for (auto i : tmx0) {
+
+			tm0.push_back(i);
+
+		}
+
+		for (auto i : tmx1) {
+
+			tm1.push_back(i);
+
+		}
+
+		b++;
+
 	}
+	for (auto i : tm0) {
+
+		a.push_back(a1[i.second]);
+
+	}
+
+	for (auto i : tm1) {
+
+		a.push_back(a1[i.second]);
+
+	}
+
+	for (int i = 0; i < a.size(); i++) {
+
+		a1[i] = a[i];
+
+	}
+
 }
 
+
+
+
 int main() {
-	ios_base::sync_with_stdio(false);
+
+	ios::sync_with_stdio(false);
 	cin.tie(nullptr);
 	cout.tie(nullptr);
 
-	int n, m = 0;
+	vector<long long> a;
+	int n;
+	long long c;
 	cin >> n;
-	string* a = new string[n];
-	for (int i = 0; i < n; i++) {
-		cin >> a[i];
-		if (m < a[i].size()) m = a[i].size();
+
+	for (int i = 0; i < n; ++i) {
+
+		cin >> c;
+		a.push_back(c);
 	}
-	LSD(a, n, m);
-	for (int i = 0; i < n; i++) {
-		cout << a[i] << " ";
+
+	LSD(a);
+
+	for (auto i : a) {
+
+		cout << i << ' ';
+
 	}
-	delete[] a;
+
 	return 0;
+
 }
