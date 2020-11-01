@@ -1,123 +1,77 @@
 #include <iostream>
 #include <algorithm>
 #include <vector>
-
+ 
 using namespace std;
-
-void LSD(vector<long long>& a1) {
-
-	long long b = 1;
-	vector<long long> a;
-	vector < pair<long long, long long >> tm0;
-	vector < pair<long long, long long >> tm1;
-
-	for (int i = 0; i < a1.size(); ++i) {
-
-		tm0.push_back({ a1[i],i });
-
-	}
-
-	while (b <= 64) {
-
-		vector < pair<long long, long long >> tmx0;
-		vector < pair<long long, long long >> tmx1;
-
-		for (auto i : tm0) {
-
-			if (i.first % 2 == 0) {
-
-				tmx0.push_back({ i.first / 2,i.second });
-
-			}
-			else {
-
-				tmx1.push_back({ i.first / 2,i.second });
-
-			}
-
+ 
+void LSD(vector<long long>& a) {
+ 
+	long long c = 0, d = 0;
+	vector <long long> a1;
+	vector<int> b[16];
+ 
+	for (int j = 0; j < 8; ++j) {
+ 
+		for (int i = 0; i < a.size(); ++i) {
+ 
+			c = pow(16, j);
+			d = a[i] / c;
+			d = d % 16;
+			b[d].push_back(i);
+ 
 		}
-
-		for (auto i : tm1) {
-
-			if (i.first % 2 == 0) {
-
-				tmx0.push_back({ i.first / 2,i.second });
-
+ 
+		for (int i = 0; i < 16; ++i) {
+ 
+			for (int l = 0; l < b[i].size(); ++l) {
+ 
+				a1.push_back(a[b[i][l]]);
+ 
 			}
-			else {
-
-				tmx1.push_back({ i.first / 2,i.second });
-
-			}
-
+ 
+			b[i].clear();
+ 
 		}
-
-		tm0.clear();
-		tm1.clear();
-
-		for (auto i : tmx0) {
-
-			tm0.push_back(i);
-
+ 
+		for (int i = 0; i < a1.size(); ++i) {
+ 
+			a[i] = a1[i];
+ 
 		}
-
-		for (auto i : tmx1) {
-
-			tm1.push_back(i);
-
-		}
-
-		b++;
-
+ 
+		a1.clear();
+ 
 	}
-	for (auto i : tm0) {
-
-		a.push_back(a1[i.second]);
-
-	}
-
-	for (auto i : tm1) {
-
-		a.push_back(a1[i.second]);
-
-	}
-
-	for (int i = 0; i < a.size(); i++) {
-
-		a1[i] = a[i];
-
-	}
-
+ 
 }
-
-
-
-
+ 
 int main() {
-
-	ios::sync_with_stdio(false);
+ 
+	ios_base::sync_with_stdio(false);
 	cin.tie(nullptr);
 	cout.tie(nullptr);
-
-	vector<long long> a;
+ 
 	int n;
-	long long c;
+	long long m;
+	vector<long long> a;
+ 
 	cin >> n;
-
+ 
 	for (int i = 0; i < n; ++i) {
-
-		cin >> c;
-		a.push_back(c);
+ 
+		cin >> m;
+		a.push_back(m);
+ 
 	}
-
+ 
 	LSD(a);
-
-	for (auto i : a) {
-
-		cout << i << ' ';
-
+ 
+	for (int i = 0; i < n; ++i) {
+ 
+		cout << a[i] << ' ';
+ 
 	}
-
+ 
 	return 0;
-
+ 
 }
