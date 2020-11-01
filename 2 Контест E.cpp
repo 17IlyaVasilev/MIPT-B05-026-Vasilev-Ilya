@@ -1,35 +1,32 @@
-﻿#include <iostream>
+#include <iostream>
 #include <algorithm>
-#include <string>
-#include <vector>
 
 using namespace std;
 
-const int BS = 1000000;
+const int DBS = 8;
 
 class Heap {
 
 public:
-
 	Heap();
+	Heap(int* b, int k);
 	~Heap();
 	Heap operator= (Heap) = delete;
 	Heap(const Heap&) = delete;
 
-	void siftUp(int x);
-	void siftDown(int x);
 	void insert(int x);
 	int extractMax();
 	void print(int k);
 
 private:
 
-	int* a = new int[BS];
-	int* b = new int[BS];
-	int bufferSize = BS;
-	int heapSize = 0;
+	int* a = new int[DBS];
+	int BS = DBS;
+	int HS = 0;
 
 	void growHeap();
+	void siftUp(int x);
+	void siftDown(int x);
 
 };
 
@@ -39,19 +36,41 @@ Heap::Heap() {
 
 }
 
-Heap::~Heap() {
+Heap::Heap(int* b, int k) {
 
-	delete[] a;
-	delete[] b;
+	for (int i = 0; i < k; i++) {
+
+		if (HS == BS) {
+
+			growHeap();
+
+		}
+
+		++HS;
+		a[i] = b[i];
+
+	}
+
+	for (int i = k / 2; i >= 0; i--) {
+
+		siftDown(i);
+
+	}
 
 }
 
-void Heap::growHeap()
-{
+Heap::~Heap() {
 
-	bufferSize *= 2;
-	int* newB = new int[bufferSize];
-	for (int i = 0; i < heapSize; ++i) {
+	delete[]a;
+
+}
+
+void Heap::growHeap(){
+
+	BS *= 2;
+	int* newB = new int[BS];
+
+	for (int i = 0; i < HS; ++i) {
 
 		newB[i] = a[i];
 
@@ -76,9 +95,9 @@ void Heap::siftUp(int x) {
 
 void Heap::siftDown(int x) {
 
-	while (2 * x + 1 < heapSize) {
+	while (2 * x + 1 < HS) {
 
-		if (a[2 * x + 1] < a[2 * x + 2] && 2 * x + 2 < heapSize && a[2 * x + 2] > a[x]) {
+		if (a[2 * x + 1] < a[2 * x + 2] && 2 * x + 2 < HS && a[2 * x + 2] > a[x]) {
 
 			swap(a[2 * x + 2], a[x]);
 			x = 2 * x + 2;
@@ -100,30 +119,32 @@ void Heap::siftDown(int x) {
 
 void Heap::insert(int x) {
 
-	if (heapSize == bufferSize) {
+	if (HS == BS) {
 
 		growHeap();
 
 	}
 
-	a[heapSize] = x;
-	siftUp(heapSize);
-	heapSize++;
+	a[HS] = x;
+	siftUp(HS);
+	HS++;
 
 }
 
 int Heap::extractMax() {
 
-	int q = a[0];
-	swap(a[0], a[heapSize - 1]);
-	heapSize--;
+	int e = a[0];
+	swap(a[0], a[HS - 1]);
+	HS--;
 	siftDown(0);
 
-	return q;
+	return e;
 
 }
 
 void Heap::print(int k) {
+
+	int* b = new int[k];
 
 	for (int i = 0; i < k; i++) {
 
@@ -137,24 +158,23 @@ void Heap::print(int k) {
 
 	}
 
+	delete[] b;
+
 }
 
 int main() {
 
-	ios_base::sync_with_stdio(false);
-	cin.tie(nullptr);
-	cout.tie(nullptr);
-
 	int n, k, c;
-	Heap heap;
-	cin >> n >> k;
+    cin >> n >> k;
+	int* b = new int[k];
 
 	for (int i = 0; i < k; i++) {
 
-		cin >> c;
-		heap.insert(c);
+		cin >> b[i];
 
 	}
+
+	Heap heap(b, k);
 
 	for (int i = k; i < n; i++) {
 
@@ -163,8 +183,9 @@ int main() {
 		heap.extractMax();
 
 	}
-
 	heap.print(k);
+
+	delete[]b;
 
 	return 0;
 
