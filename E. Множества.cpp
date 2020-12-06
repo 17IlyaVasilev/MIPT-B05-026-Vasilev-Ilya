@@ -1,4 +1,4 @@
-﻿#include <iostream>
+#include <iostream>
 #include <algorithm>
 #include <set>
 #include <map>
@@ -11,13 +11,13 @@ class Struct_of_set {
 
 public:
 
-	Struct_of_set();
+	Struct_of_set(int);
 	~Struct_of_set();
 	void Add(long long, long long);
 	void Delete(long long, long long);
 	void Clear(long long);
-	void Listset(long long);
-	void Listsetsof(long long);
+	set<long long> Listset(long long);
+	set<long long> Listsetsof(long long);
 
 private:
 
@@ -26,9 +26,9 @@ private:
 
 };
 
-Struct_of_set::Struct_of_set() {
+Struct_of_set::Struct_of_set(int m) {
 
-	v.resize(100001);
+	v.resize(m);
 
 }
 
@@ -60,13 +60,13 @@ void Struct_of_set::Clear(long long s) {
 
 }
 
-void Struct_of_set::Listset(long long s) {
-
+set<long long> Struct_of_set::Listset(long long s) {
+	set<long long> a;
 	if (v[s].size() > 0) {
 
 		for (auto i : v[s]) {
 
-			cout << i << ' ';
+			a.insert(i);
 
 		}
 
@@ -74,21 +74,22 @@ void Struct_of_set::Listset(long long s) {
 	else
 	{
 
-		cout << -1;
+		a.insert(-1);
 
 	}
 
-	cout << endl;
+	return a;
 
 }
 
-void Struct_of_set::Listsetsof(long long e) {
+set<long long> Struct_of_set::Listsetsof(long long s) {
 
-	if (g[e].size() > 0) {
+	set<long long> a;
+	if (g[s].size() > 0) {
 
-		for (auto i : g[e]) {
+		for (auto i : g[s]) {
 
-			cout << i << ' ';
+			a.insert(i);
 
 		}
 
@@ -96,21 +97,22 @@ void Struct_of_set::Listsetsof(long long e) {
 	else
 	{
 
-		cout << -1;
+		a.insert(-1);
 
 	}
 
-	cout << endl;
+	return a;
 
 }
 
 int main() {
 
-	Struct_of_set st;
 	string t;
 	long long n, m, k, e, s;
 
 	cin >> n >> m >> k;
+
+	Struct_of_set st(m+1);
 
 	for (long long j = 0; j < k; ++j) {
 
@@ -137,13 +139,25 @@ int main() {
 		else if (t == "LISTSET") {
 
 			cin >> s;
-			st.Listset(s);
+			set<long long> b = st.Listset(s);
+			for (auto i : b) {
+
+				cout << i << ' ';
+
+			}
+			cout << endl;
 
 		}
 		else if (t == "LISTSETSOF") {
 
-			cin >> e;
-			st.Listsetsof(e);
+			cin >> s;
+			set<long long> b = st.Listsetsof(s);
+			for (auto i : b) {
+
+				cout << i << ' ';
+
+			}
+			cout << endl;
 
 		}
 
