@@ -1,38 +1,22 @@
-﻿#include <iostream>
+#include <iostream>
 #include <cstring>
 
 class String {
+private:
+    size_t sz = 0;
+    size_t buf_sz = 8;
+    char* str = new char[buf_sz];
+    void swap(String&);
+    void growbuffer();
+    void decreasebuffer();
+
 public:
     String() = default;
     ~String();
-    String(const char* c) {
-        memcpy(str, c, strlen(c));
-        sz = strlen(c);
-        if (buf_sz <= sz) {
-            buf_sz = sz;
-            growbuffer();
-        }
-    }
-
-    String(size_t ssz, const char c = '\0') : sz(ssz), str(new char[ssz]) {
-        memset(str, c, sz);
-        if (buf_sz <= sz) {
-            buf_sz = sz;
-            growbuffer();
-        }
-    }
-
-    String(const String& s) : String(s.sz) {
-        memcpy(str, s.str, sz);
-        if (buf_sz <= sz) {
-            buf_sz = sz;
-            growbuffer();
-        }
-    }
-
-    String(char c) : sz(1), str(new char[1]) {
-        memset(str, c, 1);
-    }
+    String(const char*);
+    String(size_t, const char);
+    String(const String&);
+    String(char);
 
     String& operator=(String s) {
         swap(s);
@@ -66,9 +50,7 @@ public:
     }
 
     friend bool operator==(const String&, const String&);
-    size_t length();
     size_t length() const;
-    bool empty();
     bool empty() const;
     void clear();
     void push_back(char);
@@ -83,15 +65,40 @@ public:
     size_t find(const String&) const;
     size_t rfind(const String&) const;
     String substr(const size_t&, const size_t&) const;
-
-private:
-    size_t sz = 0;
-    size_t buf_sz = 8;
-    char* str = new char[buf_sz];
-    void swap(String&);
-    void growbuffer();
-    void decreasebuffer();
 };
+
+String::String(const char* c) {
+    sz = strlen(c);
+    if (buf_sz < sz) {
+        buf_sz = 2 * sz;
+        if (str)delete[] str;
+        str = new char[buf_sz];
+    }
+    memcpy(str, c, strlen(c));
+}
+
+String::String(size_t ssz, const char c = '\0') {
+    sz = ssz;
+    if (buf_sz < sz) {
+        buf_sz = 2 * sz;
+        if (str)delete[] str;
+        str = new char[buf_sz];
+    }
+    memset(str, c, sz);
+}
+
+String::String(const String& s) : String(s.sz) {
+    if (buf_sz < sz) {
+        buf_sz = 2 * sz;
+        if (str)delete[] str;
+        str = new char[buf_sz];
+    }
+    memcpy(str, s.str, sz);
+}
+
+String::String(char c) : sz(1), str(new char[1]) {
+    memset(str, c, 1);
+}
 
 void String::growbuffer() {
     buf_sz *= 2;
@@ -114,16 +121,8 @@ void String::swap(String& s) {
     std::swap(str, s.str);
 }
 
-size_t String::length() {
-    return sz;
-}
-
 size_t String::length() const {
     return sz;
-}
-
-bool String::empty() {
-    return !sz;
 }
 
 bool String::empty() const {
@@ -165,7 +164,7 @@ char String::back() const {
 
 bool operator ==(const String& s1, const String& s2) {
     if (s1.length() == s2.length()) {
-        if (s1.length() == 0)
+        if (s1.length() > 0)
             return memcmp(s1.str, s2.str, s1.length()) == 0;
         else return true;
     }
@@ -272,3 +271,4 @@ size_t String::rfind(const String& s) {
 String::~String() {
     if (str)delete[] str;
 }
+
