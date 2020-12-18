@@ -1,107 +1,72 @@
-﻿#include <iostream>
-#include <vector>
-
+#include <iostream>
+ 
 using namespace std;
-
-vector <long long> v;
-long long treem[400001];
-long long treep[400001];
-long long a[100001];
-long long b[100001];
-
-void build_treem(long long v, long long left, long long right) {
-	if (left == right) treem[v] = a[left];
+ 
+class Tree_of_segment_on_sum {
+private:
+	int tree[400001];
+public:
+	Tree_of_segment_on_sum();
+	~Tree_of_segment_on_sum();
+	void build_tree(int [], int, int, int);
+	int sum_of_tree(int, int, int, int, int);
+	void update_tree(int, int, int, int, int);
+ 
+};
+ 
+Tree_of_segment_on_sum::Tree_of_segment_on_sum() {
+ 
+}
+Tree_of_segment_on_sum::~Tree_of_segment_on_sum() {
+ 
+}
+void Tree_of_segment_on_sum::build_tree(int a[], int v, int left, int right) {
+	if (left == right) {
+		if (left % 2 == 1) tree[v] = a[left]; else tree[v] = -a[left];
+	}
 	else {
-		build_treem(v * 2, left, (left + right) / 2);
-		build_treem(v * 2 + 1, (left + right) / 2 + 1, right);
-		treem[v] = (treem[v * 2] + treem[v * 2 + 1]);
+		build_tree(a, v * 2, left, (left + right) / 2);
+		build_tree(a, v * 2 + 1, (left + right) / 2 + 1, right);
+		tree[v] = tree[v * 2] + tree[v * 2 + 1];
 	}
 }
-
-long long trm(long long v, long long left, long long right, long long l, long long r) {
+int Tree_of_segment_on_sum::sum_of_tree(int v, int left, int right, int l, int r) {
 	if (l > r) return 0;
-	if (l == left && r == right) return treem[v];
-	return trm(v * 2, left, (left + right) / 2, l, min(r, (left + right) / 2)) + trm(v * 2 + 1, (left + right) / 2 + 1, right, max(l, (left + right) / 2 + 1), r);
+	if (l == left && r == right) return tree[v];
+	return sum_of_tree(v * 2, left, (left + right) / 2, l, min(r, (left + right) / 2)) + sum_of_tree(v * 2 + 1, (left + right) / 2 + 1, right, max(l, (left + right) / 2 + 1), r);
 }
-
-void update_treem(long long v, long long left, long long right, long long ind, long long change) {
-	if (left == right) treem[v] = change;
+ 
+void Tree_of_segment_on_sum::update_tree(int v, int left, int right, int ind, int change) {
+	if (left == right) tree[v] = change;
 	else {
-		if (ind <= (left + right) / 2) update_treem(v * 2, left, (left + right) / 2, ind, change);
-		else update_treem(v * 2 + 1, (left + right) / 2 + 1, right, ind, change);
-		treem[v] = (treem[v * 2] + treem[v * 2 + 1]);
+		if (ind <= (left + right) / 2) update_tree(v * 2, left, (left + right) / 2, ind, change);
+		else update_tree(v * 2 + 1, (left + right) / 2 + 1, right, ind, change);
+		tree[v] = tree[v * 2] + tree[v * 2 + 1];
 	}
 }
-
-void build_treep(long long v, long long left, long long right) {
-	if (left == right) treep[v] = b[left];
-	else {
-		build_treep(v * 2, left, (left + right) / 2);
-		build_treep(v * 2 + 1, (left + right) / 2 + 1, right);
-		treep[v] = (treep[v * 2] + treep[v * 2 + 1]);
-	}
-}
-
-long long trp(long long v, long long left, long long right, long long l, long long r) {
-	if (l > r) return 0;
-	if (l == left && r == right) return treep[v];
-	return trp(v * 2, left, (left + right) / 2, l, min(r, (left + right) / 2)) + trp(v * 2 + 1, (left + right) / 2 + 1, right, max(l, (left + right) / 2 + 1), r);
-}
-
-void update_treep(long long v, long long left, long long right, long long ind, long long change) {
-	if (left == right) treep[v] = change;
-	else {
-		if (ind <= (left + right) / 2) update_treep(v * 2, left, (left + right) / 2, ind, change);
-		else update_treep(v * 2 + 1, (left + right) / 2 + 1, right, ind, change);
-		treep[v] = (treep[v * 2] + treep[v * 2 + 1]);
-	}
-}
-
+ 
 int main() {
 	ios_base::sync_with_stdio(false);
 	cin.tie(nullptr);
 	cout.tie(nullptr);
-
-	long long n, k, c;
+ 
+	Tree_of_segment_on_sum tr;
+	int n, k, c;
 	cin >> n;
-	v.push_back(0);
-	for (long long i = 0; i < n; ++i) {
-		cin >> c;
-		v.push_back(c);
-	}
+	int vv[100001];
+	for (int i = 1; i <= n; ++i) cin >> vv[i];
+	tr.build_tree(vv, 1, 1, n);
+	int x, y, z;
 	cin >> k;
-	for (long long i = 1; i <= n; ++i) {
-		if (i % 2 == 1) {
-			a[i] = -v[i];
-			b[i] = v[i];
-		}
-		else {
-			a[i] = v[i];
-			b[i] = -v[i];
-		}
-	}
-	build_treem(1, 1, n);
-	build_treep(1, 1, n);
-	long long x = 0, y = 0, z = 0;
-	for (long long i = 0; i < k; ++i) {
+	for (int i = 0; i < k; ++i) {
 		cin >> x >> y >> z;
 		if (x == 1) {
-			if (y % 2 == 1) {
-				cout << -trm(1, 1, n, y, z) << endl;
-			}
-			else {
-				cout << -trp(1, 1, n, y, z) << endl;
-			}
+			if (y % 2 == 1) cout << tr.sum_of_tree(1, 1, n, y, z) << '\n';
+			else cout << -tr.sum_of_tree(1, 1, n, y, z) << '\n';
 		}
 		else {
-			if (y % 2 == 1) {
-				update_treem(1, 1, n, y, -z);
-				update_treep(1, 1, n, y, z);
-			}
-			else {
-				update_treem(1, 1, n, y, z);
-				update_treep(1, 1, n, y, -z);
-			}
+			if (y % 2 == 1) tr.update_tree(1, 1, n, y, z);
+			else tr.update_tree(1, 1, n, y, -z);
 		}
 	}
 	return 0;
