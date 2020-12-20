@@ -11,11 +11,14 @@ private:
 	vector<vector<pair<long long, long long>>> st;
 	vector<long long> degree;
 public:
-	Sparse_Table(const vector<pair<long long, long long>>&);
+	Sparse_Table(const vector<long long>&);
 	long long sth(long long, long long);
 };
-Sparse_Table::Sparse_Table(const vector<pair<long long, long long>>& v) {
-	st.push_back(v);
+Sparse_Table::Sparse_Table(const vector<long long>& v) {
+	vector<pair<long long, long long>> temp;
+	temp.push_back({ INF,INF });
+	for (size_t i = 1; i < v.size(); ++i) temp.push_back({ v[i],INF });
+	st.push_back(temp);
 	long long k = 1;
 	long long s = 2;
 	vector<pair<long long, long long>> c;
@@ -46,11 +49,10 @@ int main() {
 
 	long long n, x, m;
 	cin >> n >> m;
-	vector<pair<long long, long long>> v(n + 1);
+	vector<long long> v(n + 1);
 	for (long long i = 1; i <= n; ++i) {
 		cin >> x;
-		v[i].first = x;
-		v[i].second = INF;
+		v[i] = x;
 	}
 	Sparse_Table ST(v);
 	long long l, r;
