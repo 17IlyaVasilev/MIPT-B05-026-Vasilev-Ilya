@@ -1,4 +1,4 @@
-﻿#include <iostream>
+#include <iostream>
 #include <string>
 #include <vector>
 
@@ -8,36 +8,13 @@ using namespace std;
 class BigInteger {
 private:
 	vector <int> v;
-	void swap(BigInteger& s) {
-		std::swap(s.v, v);
-	}
-	void zero_destroy() {
-		reverse(v.begin(), v.end());
-		while (v.size() > 1 && v.back() == 0)v.pop_back();
-		reverse(v.begin(), v.end());
-	}
+	bool minus;
+	void swap(BigInteger&);
+	void zero_destroy();
 
-	BigInteger operator^ (const int& b) {
-		BigInteger copy;
-		if ((b == 0) || (*this == 0)) {
-			BigInteger a = 0;
-			return a;
-		}
-		size_t buff = 0;
-		for (size_t i = v.size(); i > 0; i--) {
-			copy.v.push_back((v[i - 1] * b + buff) % 10);
-			buff = (v[i - 1] * b + buff) / 10;
-		}
-		if (buff != 0) {
-			copy.v.push_back(buff % 10);
-			if (buff / 10 > 0)
-				copy.v.push_back(buff / 10);
-		}
-		reverse(copy.v.begin(), copy.v.end());
-		return copy;
-	}
 public:
-	BigInteger() {}
+	BigInteger();
+	BigInteger(int);
 	friend std::ostream& operator <<(std::ostream& out, const BigInteger& s);
 	friend std::istream& operator >>(std::istream& in, BigInteger& s);
 	friend bool operator==(const BigInteger&, const BigInteger&);
@@ -58,30 +35,8 @@ public:
 	friend bool operator>=(const int&, const BigInteger&);
 	friend bool operator<(const int&, const BigInteger&);
 	friend bool operator>(const int&, const BigInteger&);
-	string toString();
-	string toString() const;
-	BigInteger(int a) {
-		if (a == 0)
-			v.push_back(0);
-		else {
-			bool g = false;
-			if (a < 0) {
-				a *= -1;
-				g = true;
-			}
-			while (a) {
-				v.push_back(a % 10);
-				a /= 10;
-			}
-			reverse(v.begin(), v.end());
-			if (g)v[0] *= -1;
-		}
-	}
 
 	BigInteger& operator=(BigInteger a) {
-		reverse(a.v.begin(), a.v.end());
-		while (a.v.size() > 1 && a.v.back() == 0)a.v.pop_back();
-		reverse(a.v.begin(), a.v.end());
 		swap(a);
 		return *this;
 	}
@@ -93,204 +48,272 @@ public:
 	}
 
 	BigInteger& operator-=(const BigInteger& a) {
-		if (a.v[0] < 0) {
-			BigInteger c = a;
-			c.v[0] *= -1;
-			*this += c;
-			return *this;
-		}
-		else if (v[0] < 0) {
-			BigInteger c = a;
-			v[0] *= -1;
-			c += *this;
-			*this = -c;
+		BigInteger b = 0;
+		BigInteger s = 0;
+		if (a.minus != minus) {
+			BigInteger k = *this;
+			BigInteger q = a;
+			k.minus = false;
+			q.minus = false;
+			if (q > k) {
+				b = a;
+				s = *this;
+			}
+			else {
+				b = *this;
+				s = a;
+			}
+			size_t sz = b.v.size();
+			for (size_t i = 0; i < sz; ++i) {
+				if (i < s.v.size()) {
+					b.v[i] += s.v[i];
+					if (b.v[i] > 9) {
+						if (i + 1 == sz) b.v.push_back(0);
+						b.v[i] -= 10;
+						++b.v[i + 1];
+					}
+				}
+			}
+			size_t i = sz;
+			b.v.push_back(0);
+			while (b.v[i] < 0 && b.v.size() > i + 1) {
+				b.v[i] += 10;
+				--b.v[i + 1];
+				++i;
+			}
+			if (a.minus) b.minus = false; else b.minus = true;
+			b.zero_destroy();
+			*this = b;
 			return *this;
 		}
 		else {
-			BigInteger res;
-			BigInteger c = a;
-			BigInteger b = *this;
-			reverse(c.v.begin(), c.v.end());
-			reverse(b.v.begin(), b.v.end());
-			if (c.v.size() > b.v.size()) {
-				c.v.push_back(0);
-				while (c.v.size() > b.v.size()) {
-					b.v.push_back(0);
-				}
+			BigInteger k = *this;
+			BigInteger q = a;
+			k.minus = false;
+			q.minus = false;
+			if (q > k) {
+				b = a;
+				s = *this;
+				if (a.minus) b.minus = false; else b.minus = true;
 			}
 			else {
-				b.v.push_back(0);
-				while (c.v.size() < b.v.size()) {
-					c.v.push_back(0);
-				}
+				b = *this;
+				s = a;
 			}
-			int d = 0;
-			if (*this > a) {
-				int e = 0;
-				for (size_t i = 0; i < b.v.size(); ++i) {
-					if (b.v[i] - d - c.v[i] < 0) {
-						b.v[i] += 10 - d;
-						d = 1;
-						e = b.v[i] - c.v[i];
-					}
-					else {
-						e = b.v[i] - c.v[i] - d;
-						d = 0;
-					}
-					res.v.push_back(e);
+			size_t sz = s.v.size();
+			for (size_t i = 0; i < sz; ++i) {
+				if (b.v[i] < s.v[i]) {
+					b.v[i] += 10;
+					--b.v[i + 1];
 				}
-				reverse(res.v.begin(), res.v.end());
-				*this = res;
+				b.v[i] -= s.v[i];
 			}
-			else {
-				int e = 0;
-				for (size_t i = 0; i < b.v.size(); ++i) {
-					if (c.v[i] - d - b.v[i] < 0) {
-						c.v[i] += 10 - d;
-						d = 1;
-						e = c.v[i] - b.v[i];
-					}
-					else {
-						e = c.v[i] - b.v[i] - d;
-						d = 0;
-					}
-					res.v.push_back(e);
-				}
-				reverse(res.v.begin(), res.v.end());
-				*this = -res;
+			size_t i = sz;
+			b.v.push_back(0);
+			while (b.v[i] < 0 && b.v.size() > i + 1) {
+				b.v[i] += 10;
+				--b.v[i + 1];
+				++i;
 			}
+			b.zero_destroy();
+			*this = b;
 			return *this;
 		}
 	}
+
 
 	BigInteger& operator+=(const BigInteger& a) {
-		if (a.v[0] < 0) {
-			BigInteger c = a;
-			c.v[0] *= -1;
-			*this -= c;
-			return *this;
-		}
-		else if (v[0] < 0) {
-			BigInteger c = a;
-			v[0] *= -1;
-			c -= *this;
-			*this = c;
+		BigInteger b = 0;
+		BigInteger s = 0;
+		if (a.minus == minus) {
+			BigInteger k = *this;
+			BigInteger q = a;
+			k.minus = false;
+			q.minus = false;
+			if (q > k) {
+				b = a;
+				s = *this;
+			}
+			else {
+				b = *this;
+				s = a;
+			}
+			size_t sz = b.v.size();
+			for (size_t i = 0; i < sz; ++i) {
+				if (i < s.v.size()) {
+					b.v[i] += s.v[i];
+					if (b.v[i] > 9) {
+						if (i + 1 == sz) b.v.push_back(0);
+						b.v[i] -= 10;
+						++b.v[i + 1];
+					}
+				}
+			}
+			size_t i = sz;
+			b.v.push_back(0);
+			while (b.v[i] < 0 && b.v.size() > i + 1) {
+				b.v[i] += 10;
+				--b.v[i + 1];
+				++i;
+			}
+			b.zero_destroy();
+			*this = b;
 			return *this;
 		}
 		else {
-			BigInteger res;
-			BigInteger c = a;
-			BigInteger b = *this;
-			reverse(c.v.begin(), c.v.end());
-			reverse(b.v.begin(), b.v.end());
-			if (c.v.size() > b.v.size()) {
-				c.v.push_back(0);
-				while (c.v.size() > b.v.size()) {
-					b.v.push_back(0);
-				}
+			BigInteger k = *this;
+			BigInteger q = a;
+			k.minus = false;
+			q.minus = false;
+			if (q > k) {
+				b = a;
+				s = *this;
 			}
 			else {
-				b.v.push_back(0);
-				while (c.v.size() < b.v.size()) {
-					c.v.push_back(0);
+				b = *this;
+				s = a;
+			}
+			size_t sz = s.v.size();
+			for (size_t i = 0; i < sz; ++i) {
+				if (b.v[i] < s.v[i]) {
+					b.v[i] += 10;
+					--b.v[i + 1];
 				}
+				b.v[i] -= s.v[i];
 			}
-			int d = 0;
-			for (size_t i = 0; i < b.v.size(); ++i) {
-				int e = b.v[i] + c.v[i] + d;
-				res.v.push_back(e % 10);
-				d = e / 10;
+			size_t i = sz;
+			b.v.push_back(0);
+			while (b.v[i] < 0 && b.v.size() > i + 1) {
+				b.v[i] += 10;
+				--b.v[i + 1];
+				++i;
 			}
-			reverse(res.v.begin(), res.v.end());
-			*this = res;
+			b.zero_destroy();
+			*this = b;
 			return *this;
 		}
 	}
 
-	BigInteger& operator*=(const BigInteger& b) {
-		BigInteger sum = 0;
-		size_t g = 1;
-		if (v[0] < 0) {
-			v[0] *= -1;
-			g *= -1;
+	BigInteger& operator*=(const BigInteger& a) {
+		BigInteger b = 0;
+		BigInteger s = 0;
+		BigInteger k = *this;
+		BigInteger q = a;
+		k.minus = false;
+		q.minus = false;
+		if (q > k) {
+			b = a;
+			s = *this;
 		}
-		if (b.v[0] < 0)g *= -1;
-		for (size_t i = b.v.size(); i > 0; i--) {
-			BigInteger temp = (*this) ^ abs(b.v[i - 1]);
-			sum += temp;
-			v.push_back(0);
+		else {
+			b = *this;
+			s = a;
 		}
-		sum.v[0] *= g;
-		*this = sum;
+		vector<int> bb = b.v;
+		vector<int> ss = s.v;
+		int rank = 0;
+		int degree = 0;
+		BigInteger res = 0;
+		for (size_t i = 0; i < ss.size(); ++i) {
+			vector<int> temp;
+			int t = degree;
+			degree++;
+			while (t > 0) {
+				temp.push_back(0);
+				t--;
+			}
+			for (size_t j = 0; j < bb.size(); ++j) {
+				temp.push_back((ss[i] * bb[j] + rank) % 10);
+				rank = (ss[i] * bb[j] + rank) / 10;
+			}
+			if (rank > 0) temp.push_back(rank);
+			rank = 0;
+			BigInteger temp_big;
+			temp_big.v = temp;
+			res += temp_big;
+		}
+		if (minus != a.minus) res.minus = true; else res.minus = false;
+		res.zero_destroy();
+		*this = res;
 		return *this;
 	}
 
 	BigInteger& operator/=(const BigInteger& a) {
-		bool z = true;
-		if (v[0] < 0) {
-			v[0] = -v[0];
-			z = false;
-		}
-		BigInteger t = a;
-		bool y = true;
-		if (a.v[0] < 0) {
-			t.v[0] = -t.v[0];
-			y = false;
-		}
-		BigInteger copy;
-		BigInteger b = 0;
-		vector<int> result;
-		if (t > * this) {
+		BigInteger k = *this;
+		BigInteger q = a;
+		k.minus = false;
+		q.minus = false;
+		if (q > k) {
 			*this = 0;
+			minus = false;
 			return *this;
 		}
 		else {
-			for (size_t i = 0; i < t.v.size(); ++i)
-				copy.v.push_back(v[i]);
+			bool sign;
+			if (minus == a.minus) sign = false; else sign = true;
+			BigInteger copy;
+			BigInteger s = a;
+			BigInteger b = *this;
+			b.minus = false;
+			s.minus = false;
+			BigInteger st = 0;
+			vector<int> temp;
+			vector<int> res;
+			size_t i = 0, jj = v.size();
+			--jj;
+			while (i < s.v.size()) {
+				temp.push_back(v[jj]);
+				++i;
+				--jj;
+			}
+			reverse(temp.begin(), temp.end());
+			copy.v = temp;
+			copy.minus = false;
 			int j = 0;
 			for (j = 0; j < 10; ++j) {
-				if (copy < b) {
-					if (!(j == 1 && result.size() == 0))
-						result.push_back(j - 1);
+				if (copy < st) {
+					if (!(j == 1 && res.size() == 0))
+						res.push_back(j - 1);
 					for (int l = 0; l < j - 1; ++l) {
-						copy -= t;
+						copy -= s;
 					}
 					break;
 				}
-				b += t;
+				st += s;
 			}
 			if (j == 10) {
-				result.push_back(j - 1);
+				res.push_back(j - 1);
 				for (int l = 0; l < j - 1; ++l) {
-					copy -= t;
+					copy -= s;
 				}
 			}
-			for (size_t i = t.v.size(); i < v.size(); ++i) {
-				copy.v.push_back(0);
-				copy += v[i];
-				int j = 0;
-				b = 0;
+			for (int i = v.size() - s.v.size(); i > 0; --i) {
+				copy *= 10;
+				copy += v[i - 1];
+				j = 0;
+				st = 0;
 				for (j = 0; j < 10; ++j) {
-					if (copy < b) {
-						if (!(j == 1 && result.size() == 0))
-							result.push_back(j - 1);
+					if (copy < st) {
+						if (!(j == 1 && res.size() == 0))
+							res.push_back(j - 1);
 						for (int l = 0; l < j - 1; ++l) {
-							copy -= t;
+							copy -= s;
 						}
 						break;
 					}
-					b += t;
+					st += s;
 				}
 				if (j == 10) {
-					result.push_back(j - 1);
+					res.push_back(j - 1);
 					for (int l = 0; l < j - 1; ++l) {
-						copy -= t;
+						copy -= s;
 					}
 				}
 			}
-			v.clear();
-			v = result;
-			if ((!y && z) || (!z && y)) return -*this;
+			reverse(res.begin(), res.end());
+			v = res;
+			minus = sign;
+			(*this).zero_destroy();
 			return *this;
 		}
 	}
@@ -299,43 +322,47 @@ public:
 		BigInteger temp = *this;
 		temp /= a;
 		temp *= a;
+		BigInteger copy = *this;
+		copy -= temp;
+		copy.zero_destroy();
+		*this = copy;
+		return *this;
+	}
+
+	BigInteger& operator+=(const int& a) {
+		BigInteger temp = BigInteger(a);
+		*this += temp;
+		return *this;
+	}
+
+	BigInteger& operator-=(const int& a) {
+		BigInteger temp = BigInteger(a);
 		*this -= temp;
 		return *this;
 	}
 
-	BigInteger& operator+=(const int& b) {
-		BigInteger b1 = BigInteger(b);
-		*this += b1;
+	BigInteger& operator*=(const int& a) {
+		BigInteger temp = BigInteger(a);
+		*this *= temp;
 		return *this;
 	}
 
-	BigInteger& operator-=(const int& b) {
-		BigInteger b1 = BigInteger(b);
-		*this -= b1;
+	BigInteger& operator/=(const int& a) {
+		BigInteger temp = BigInteger(a);
+		*this /= temp;
 		return *this;
 	}
 
-	BigInteger& operator*=(const int& b) {
-		BigInteger b1 = BigInteger(b);
-		*this *= b1;
-		return *this;
-	}
-
-	BigInteger& operator/=(const int& b) {
-		BigInteger b1 = BigInteger(b);
-		*this /= b1;
-		return *this;
-	}
-
-	BigInteger& operator%=(const int& b) {
-		BigInteger b1 = BigInteger(b);
-		*this %= b1;
+	BigInteger& operator%=(const int& a) {
+		BigInteger temp = BigInteger(a);
+		*this %= temp;
 		return *this;
 	}
 
 	BigInteger& operator-() {
-		zero_destroy();
-		v[0] *= -1;
+		if (*this != 0) {
+			if (minus) minus = false; else minus = true;
+		}
 		return *this;
 	}
 
@@ -365,7 +392,38 @@ public:
 		--(*this);
 		return copy;
 	}
+
+	string toString();
+	string toString() const;
 };
+
+BigInteger::BigInteger() {
+
+}
+
+BigInteger::BigInteger(int i) {
+	minus = false;
+	if (i == 0) v.push_back(0);
+	else {
+		if (i < 0) {
+			i *= -1;
+			minus = true;
+		}
+		while (i > 0) {
+			v.push_back(i % 10);
+			i /= 10;
+		}
+	}
+}
+
+void BigInteger::swap(BigInteger& s) {
+	std::swap(s.v, v);
+	std::swap(s.minus, minus);
+}
+
+void BigInteger::zero_destroy() {
+	while (v.size() > 1 && v.back() == 0) v.pop_back();
+}
 
 BigInteger operator ""_bi(unsigned long long a) {
 	return BigInteger(a);
@@ -373,52 +431,49 @@ BigInteger operator ""_bi(unsigned long long a) {
 
 string BigInteger::toString() {
 	string s = "";
-	for (size_t i = 0; i < (*this).v.size(); i++) {
-		if ((*this).v[i] < 0) {
-			s += '-';
-			s += char(48 - (*this).v[i]);
-		}
-		else s += char(48 + (*this).v[i]);
-	}
+	if (minus) s += "-";
+	vector<int> ts = v;
+	reverse(ts.begin(), ts.end());
+	for (size_t i = 0; i < v.size(); ++i) s += char(48 + ts[i]);
 	return s;
 }
 
 string BigInteger::toString() const {
 	string s = "";
-	for (size_t i = 0; i < (*this).v.size(); i++) {
-		if ((*this).v[i] < 0) {
-			s += '-';
-			s += char(48 - (*this).v[i]);
-		}
-		else s += char(48 + (*this).v[i]);
-	}
+	if (minus) s += "-";
+	vector<int> ts = v;
+	reverse(ts.begin(), ts.end());
+	for (size_t i = 0; i < v.size(); ++i) s += char(48 + ts[i]);
 	return s;
-}
-
-std::ostream& operator <<(std::ostream& out, const BigInteger& s) {
-	for (auto i : s.v) {
-		out << i;
-	}
-	return out;
 }
 
 std::istream& operator >> (std::istream& in, BigInteger& s) {
 	char c;
-	bool less = false;
+	bool sign = false;
 	s = 0;
 	do {
 		c = in.get();
 	} while (isspace(c));
 	while (!in.eof() && !isspace(c)) {
 		if (c != '-') {
-			if (s)s *= 10;
+			s *= 10;
 			s += BigInteger(int(c) - 48);
 		}
-		else less = true;
+		else sign = true;
 		c = in.get();
 	}
-	if (less)s.v[0] *= -1;
+	s.minus = sign;
 	return in;
+}
+
+std::ostream& operator <<(std::ostream& out, const BigInteger& s) {
+	BigInteger copy = s;
+	reverse(copy.v.begin(), copy.v.end());
+	if (s.minus) copy.v[0] = -copy.v[0];
+	for (auto i : copy.v) {
+		out << i;
+	}
+	return out;
 }
 
 bool operator==(const BigInteger& a, const BigInteger& b) {
@@ -431,11 +486,15 @@ bool operator!=(const BigInteger& a, const BigInteger& b) {
 	return !(a == b);
 }
 
-bool operator<=(const BigInteger& a, const BigInteger& b) {
-	if (a.v[0] <= 0 && b.v[0] >= 0)return true;
-	if (a.v[0] >= 0 && b.v[0] <= 0)return false;
+bool operator<=(const BigInteger& aa, const BigInteger& bb) {
+	BigInteger a = aa;
+	BigInteger b = bb;
+	reverse(a.v.begin(), a.v.end());
+	reverse(b.v.begin(), b.v.end());
+	if ((a.minus || a == 0) && (!b.minus || b == 0))return true;
+	if ((!a.minus || a == 0) && (b.minus || b == 0))return false;
 	bool f = false;
-	if (a.v[0] <= 0 && b.v[0] <= 0)f = true;
+	if ((a.minus || a == 0) && (b.minus || b == 0))f = true;
 	if (a.v.size() < b.v.size()) {
 		if (!f)return true;
 		return false;
@@ -457,11 +516,15 @@ bool operator<=(const BigInteger& a, const BigInteger& b) {
 	return true;
 }
 
-bool operator>=(const BigInteger& a, const BigInteger& b) {
-	if (a.v[0] <= 0 && b.v[0] >= 0)return false;
-	if (a.v[0] >= 0 && b.v[0] <= 0)return true;
+bool operator>=(const BigInteger& aa, const BigInteger& bb) {
+	BigInteger a = aa;
+	BigInteger b = bb;
+	reverse(a.v.begin(), a.v.end());
+	reverse(b.v.begin(), b.v.end());
+	if ((a.minus || a == 0) && (!b.minus || b == 0))return false;
+	if ((!a.minus || a == 0) && (b.minus || b == 0))return true;
 	bool f = false;
-	if (a.v[0] <= 0 && b.v[0] <= 0)f = true;
+	if ((a.minus || a == 0) && (b.minus || b == 0))f = true;
 	if (a.v.size() < b.v.size()) {
 		if (f)return true;
 		return false;
@@ -483,100 +546,76 @@ bool operator>=(const BigInteger& a, const BigInteger& b) {
 	return true;
 }
 
-bool operator<(const BigInteger& a, const BigInteger& b) {
-	return (a <= b && a != b);
+bool operator<(const BigInteger& aa, const BigInteger& bb) {
+	return (aa <= bb && aa != bb);
 }
 
-bool operator>(const BigInteger& a, const BigInteger& b) {
-	return (a >= b && a != b);
+bool operator>(const BigInteger& aa, const BigInteger& bb) {
+	return (aa >= bb && aa != bb);
 }
 
 bool operator==(const BigInteger& a, const int& b) {
-	const BigInteger b1 = BigInteger(b);
-	if (a.v.size() != b1.v.size())return false;
-	for (size_t i = 0; i < a.v.size(); i++)if (a.v[i] != b1.v[i])return false;
+	const BigInteger temp = BigInteger(b);
+	if (a.v.size() != temp.v.size())return false;
+	for (size_t i = 0; i < a.v.size(); i++)if (a.v[i] != temp.v[i])return false;
 	return true;
 }
 
 bool operator!=(const BigInteger& a, const int& b) {
-	const BigInteger b1 = BigInteger(b);
-	return !(a == b1);
+	const BigInteger temp = BigInteger(b);
+	return !(a == temp);
 }
 
 bool operator<=(const BigInteger& a, const int& b) {
-	const BigInteger b1 = BigInteger(b);
-	if (a.v.size() < b1.v.size())return true;
-	if (a.v.size() > b1.v.size())return false;
-	for (size_t i = 0; i < a.v.size(); i++) {
-		if (a.v[i] < b1.v[i])return true;
-		if (a.v[i] > b1.v[i])return false;
-	}
-	return true;
+	const BigInteger temp = BigInteger(b);
+	return a <= temp;
 }
 
 bool operator>=(const BigInteger& a, const int& b) {
-	const BigInteger b1 = BigInteger(b);
-	if (a.v.size() > b1.v.size())return true;
-	if (a.v.size() < b1.v.size())return false;
-	for (size_t i = 0; i < a.v.size(); i++) {
-		if (a.v[i] > b1.v[i])return true;
-		if (a.v[i] < b1.v[i])return false;
-	}
-	return true;
+	const BigInteger temp = BigInteger(b);
+	return a >= temp;
 }
 
 bool operator<(const BigInteger& a, const int& b) {
-	const BigInteger b1 = BigInteger(b);
-	return (a <= b1 && a != b1);
+	const BigInteger temp = BigInteger(b);
+	return (a <= temp && a != temp);
 }
 
 bool operator>(const BigInteger& a, const int& b) {
-	const BigInteger b1 = BigInteger(b);
-	return (a >= b1 && a != b1);
+	const BigInteger temp = BigInteger(b);
+	return (a >= temp && a != temp);
 }
 
 bool operator==(const int& a, const BigInteger& b) {
-	BigInteger a1 = BigInteger(a);
-	if (a1.v.size() != b.v.size())return false;
-	for (size_t i = 0; i < a1.v.size(); i++)if (a1.v[i] != b.v[i])return false;
+	BigInteger temp = BigInteger(a);
+	if (temp.v.size() != b.v.size())return false;
+	for (size_t i = 0; i < temp.v.size(); i++)if (temp.v[i] != b.v[i])return false;
 	return true;
 }
 
 bool operator!=(const int& a, const BigInteger& b) {
-	BigInteger a1 = BigInteger(a);
-	return !(a1 == b);
+	BigInteger temp = BigInteger(a);
+	return !(temp == b);
 }
 
 bool operator<=(const int& a, const BigInteger& b) {
-	BigInteger a1 = BigInteger(a);
-	if (a1.v.size() < b.v.size())return true;
-	if (a1.v.size() > b.v.size())return false;
-	for (size_t i = 0; i < a1.v.size(); i++) {
-		if (a1.v[i] < b.v[i])return true;
-		if (a1.v[i] > b.v[i])return false;
-	}
-	return true;
+	BigInteger temp = BigInteger(a);
+	return temp <= b;
 }
 
 bool operator>=(const int& a, const BigInteger& b) {
-	BigInteger a1 = BigInteger(a);
-	if (a1.v.size() > b.v.size())return true;
-	if (a1.v.size() < b.v.size())return false;
-	for (size_t i = 0; i < a1.v.size(); i++) {
-		if (a1.v[i] > b.v[i])return true;
-		if (a1.v[i] < b.v[i])return false;
-	}
-	return true;
+	BigInteger temp = BigInteger(a);
+	return temp >= b;
 }
 
 bool operator<(const int& a, const BigInteger& b) {
-	BigInteger a1 = BigInteger(a);
-	return (a1 <= b && a1 != b);
+	BigInteger temp = BigInteger(a);
+	return (temp <= b && temp != b);
 }
 
 bool operator>(const int& a, const BigInteger& b) {
-	BigInteger a1 = BigInteger(a);
-	return (a1 >= b && a1 != b);
+	BigInteger temp = BigInteger(a);
+	return (temp >= b && temp != b);
 }
 
 BigInteger operator+(const BigInteger& a, const BigInteger& b) {
@@ -676,7 +715,7 @@ BigInteger nod(BigInteger a, BigInteger b) {
 	if (b < 0) {
 		b *= -1;
 	}
-	while (a && b) {
+	while (a > 0 && b > 0) {
 		if (a > b)a %= b;
 		else b %= a;
 	}
@@ -690,28 +729,23 @@ private:
 	BigInteger down = 1;
 
 public:
-
-	Rational();
-	~Rational();
-	Rational(const BigInteger& a) {
-		up = a;
-		down = 1;
-	}
-	Rational(const int& a) {
-		up = a;
-		down = 1;
-	}
+	Rational() = default;
+	Rational(const BigInteger&);
+	Rational(const int&);
+	~Rational() {};
 
 	Rational& operator=(const Rational a) {
 		up = a.up;
 		down = a.down;
 		return *this;
 	}
+
 	Rational& operator=(const BigInteger a) {
 		up = a;
 		down = 1;
 		return *this;
 	}
+
 	Rational& operator=(const int a) {
 		up = a;
 		down = 1;
@@ -730,26 +764,18 @@ public:
 		}
 		return *this;
 	}
+
 	Rational& operator+=(const BigInteger& a) {
-		up = up + down * a;
-		BigInteger Nod = nod(down, up);
-		up = up / Nod;
-		down = down / Nod;
-		if (down < 0) {
-			up *= -1;
-			down *= -1;
-		}
+		Rational copy = *this;
+		copy += Rational(a);
+		*this = copy;
 		return *this;
 	}
+
 	Rational& operator+=(const int& a) {
-		up = up + down * a;
-		BigInteger Nod = nod(down, up);
-		up = up / Nod;
-		down = down / Nod;
-		if (down < 0) {
-			up *= -1;
-			down *= -1;
-		}
+		Rational copy = *this;
+		copy += Rational(a);
+		*this = copy;
 		return *this;
 	}
 
@@ -757,34 +783,26 @@ public:
 		up = up * a.down - down * a.up;
 		down = down * a.down;
 		BigInteger Nod = nod(down, up);
-		up = up / Nod;
-		down = down / Nod;
+		up /= Nod;
+		down /= Nod;
 		if (down < 0) {
 			up *= -1;
 			down *= -1;
 		}
 		return *this;
 	}
+
 	Rational& operator-=(const BigInteger& a) {
-		up = up - down * a;
-		BigInteger Nod = nod(down, up);
-		up = up / Nod;
-		down = down / Nod;
-		if (down < 0) {
-			up *= -1;
-			down *= -1;
-		}
+		Rational copy = *this;
+		copy -= Rational(a);
+		*this = copy;
 		return *this;
 	}
+
 	Rational& operator-=(const int& a) {
-		up = up - down * a;
-		BigInteger Nod = nod(down, up);
-		up = up / Nod;
-		down = down / Nod;
-		if (down < 0) {
-			up *= -1;
-			down *= -1;
-		}
+		Rational copy = *this;
+		copy -= Rational(a);
+		*this = copy;
 		return *this;
 	}
 
@@ -800,26 +818,18 @@ public:
 		}
 		return *this;
 	}
+
 	Rational& operator*=(const BigInteger& a) {
-		up = up * a;
-		BigInteger Nod = nod(down, up);
-		up = up / Nod;
-		down = down / Nod;
-		if (down < 0) {
-			up *= -1;
-			down *= -1;
-		}
+		Rational copy = *this;
+		copy *= Rational(a);
+		*this = copy;
 		return *this;
 	}
+
 	Rational& operator*=(const int& a) {
-		up = up * a;
-		BigInteger Nod = nod(down, up);
-		up = up / Nod;
-		down = down / Nod;
-		if (down < 0) {
-			up *= -1;
-			down *= -1;
-		}
+		Rational copy = *this;
+		copy *= Rational(a);
+		*this = copy;
 		return *this;
 	}
 
@@ -835,27 +845,44 @@ public:
 		}
 		return *this;
 	}
+
 	Rational& operator/=(const BigInteger& a) {
-		down = down * a;
-		BigInteger Nod = nod(down, up);
-		up = up / Nod;
-		down = down / Nod;
-		if (down < 0) {
-			up *= -1;
-			down *= -1;
-		}
+		Rational copy = *this;
+		copy /= Rational(a);
+		*this = copy;
 		return *this;
 	}
+
 	Rational& operator/=(const int& a) {
-		down = down * a;
-		BigInteger Nod = nod(down, up);
-		up = up / Nod;
-		down = down / Nod;
-		if (down < 0) {
-			up *= -1;
-			down *= -1;
-		}
+		Rational copy = *this;
+		copy /= Rational(a);
+		*this = copy;
 		return *this;
+	}
+
+	Rational& operator-() {
+		up *= -1;
+		return *this;
+	}
+
+	explicit operator double() {
+		string copy = asDecimal(310);
+		size_t nach = copy.find(".");
+		double k = 1, sum = 0;
+		for (int i = nach - 1; i >= 0; i--) {
+			char c = copy[i];
+			double x = int(c) - 48;
+			sum = sum + x * k;
+			k = k * 10;
+		}
+		k = 0.1;
+		for (size_t i = nach + 1; i <= 307; i++) {
+			char c = copy[i];
+			double x = int(c) - 48;
+			sum = sum + x * k;
+			k = k / 10;
+		}
+		return sum;
 	}
 
 	friend bool operator==(const Rational&, const Rational&);
@@ -897,124 +924,19 @@ public:
 	friend Rational operator/(const BigInteger&, const Rational&);
 	friend Rational operator/(const int&, const Rational&);
 
-
-
-	string toString() {
-		string copy;
-		BigInteger x = up;
-		if (x < 0) {
-			copy += "-";
-			x *= -1;
-		}
-		if (x == 0) {
-			copy += "0";
-			return copy;
-		}
-		else {
-			string str = x.toString();
-			copy += str;
-			if (down == 1) {
-				return copy;
-			}
-			else {
-				BigInteger x = down;
-				copy += "/";
-				string str = x.toString();
-				copy += str;
-				return copy;
-			}
-		}
-	}
-
-
-	string asDecimal(size_t precision = 0) {
-		BigInteger a = up / down;
-		BigInteger b = up % down;
-		BigInteger c = down;
-		string copy;
-		if (up < 0) copy = "-"; else copy = "";
-		string ccopy = a.toString();
-		if (up < 0) copy = "-"; else copy = "";
-		copy += ccopy;
-		if (precision == 0) {
-			return copy;
-		}
-		else {
-			precision++;
-			copy += ".";
-			for (size_t i = 0; i < precision; ++i) {
-				a = b * 10;
-				b = a % c;
-				a /= c;
-				if (a < 0) a *= -1;
-				if (a == 0) copy += "0"; else
-					if (a == 1) copy += "1"; else
-						if (a == 2) copy += "2"; else
-							if (a == 3) copy += "3"; else
-								if (a == 4) copy += "4"; else
-									if (a == 5) copy += "5"; else
-										if (a == 6) copy += "6"; else
-											if (a == 7) copy += "7"; else
-												if (a == 8) copy += "8"; else
-													if (a == 9) copy += "9";
-			}
-			if (int(copy.back()) - 48 >= 5) {
-				copy.pop_back();
-				int i = copy.size() - 1;
-				while (true) {
-					if (copy[i] != '9') {
-						copy[i] = char(int(copy[i]) + 1);
-						break;
-					}
-					copy[i] = '0';
-					i--;
-					if (copy[i] == '.')break;
-				}
-				if (copy[i] == '.')copy = (up / down + 1).toString();
-				return copy;
-			}
-			else {
-				copy.pop_back();
-				return copy;
-			}
-		}
-	}
-
-	Rational& operator-() {
-		up *= -1;
-		return *this;
-	}
-
-	explicit operator double() {
-		string copy = asDecimal(310);
-		size_t nach = copy.find(".");
-		double k = 1, sum = 0;
-		for (int i = nach - 1; i >= 0; i--) {
-			char c = copy[i];
-			double x = int(c) - 48;
-			sum = sum + x * k;
-			k = k * 10;
-		}
-		k = 0.1;
-		for (size_t i = nach + 1; i <= 307; i++) {
-			char c = copy[i];
-			double x = int(c) - 48;
-			sum = sum + x * k;
-			k = k / 10;
-		}
-		return sum;
-	}
-
+	string toString();
+	string asDecimal(size_t);
 };
 
 
-Rational::Rational() {
-	up = 0;
+Rational::Rational(const BigInteger& a) {
+	up = a;
 	down = 1;
 }
 
-Rational::~Rational() {
-
+Rational::Rational(const int& a) {
+	up = a;
+	down = 1;
 }
 
 Rational operator+(const Rational& a, const Rational& b) {
@@ -1240,4 +1162,84 @@ bool operator<=(const BigInteger& b, const Rational& a) {
 
 bool operator<=(const int& b, const Rational& a) {
 	return (a.up >= a.down * b);
+}
+
+string Rational::toString() {
+	string copy;
+	BigInteger x = up;
+	if (x < 0) {
+		copy += "-";
+		x *= -1;
+	}
+	if (x == 0) {
+		copy += "0";
+		return copy;
+	}
+	else {
+		string str = x.toString();
+		copy += str;
+		if (down == 1) {
+			return copy;
+		}
+		else {
+			BigInteger x = down;
+			copy += "/";
+			string str = x.toString();
+			copy += str;
+			return copy;
+		}
+	}
+}
+
+string Rational::asDecimal(size_t precision = 0) {
+	BigInteger a = up / down;
+	BigInteger b = up % down;
+	BigInteger c = down;
+	string copy;
+	if (up < 0) copy = "-"; else copy = "";
+	string ccopy = a.toString();
+	if (up < 0) copy = "-"; else copy = "";
+	copy += ccopy;
+	if (precision == 0) {
+		return copy;
+	}
+	else {
+		precision++;
+		copy += ".";
+		for (size_t i = 0; i < precision; ++i) {
+			a = b * 10;
+			b = a % c;
+			a /= c;
+			if (a < 0) a *= -1;
+			if (a == 0) copy += "0"; else
+				if (a == 1) copy += "1"; else
+					if (a == 2) copy += "2"; else
+						if (a == 3) copy += "3"; else
+							if (a == 4) copy += "4"; else
+								if (a == 5) copy += "5"; else
+									if (a == 6) copy += "6"; else
+										if (a == 7) copy += "7"; else
+											if (a == 8) copy += "8"; else
+												if (a == 9) copy += "9";
+		}
+		if (int(copy.back()) - 48 >= 5) {
+			copy.pop_back();
+			int i = copy.size() - 1;
+			while (true) {
+				if (copy[i] != '9') {
+					copy[i] = char(int(copy[i]) + 1);
+					break;
+				}
+				copy[i] = '0';
+				i--;
+				if (copy[i] == '.')break;
+			}
+			if (copy[i] == '.')copy = (up / down + 1).toString();
+			return copy;
+		}
+		else {
+			copy.pop_back();
+			return copy;
+		}
+	}
 }
