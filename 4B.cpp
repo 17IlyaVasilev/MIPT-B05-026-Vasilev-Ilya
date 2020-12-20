@@ -1,26 +1,29 @@
 #include <iostream>
- 
+
 using namespace std;
- 
+
 class Tree_of_segment_on_sum {
 private:
-	int tree[400001];
+	int* tree = new int[4];
 public:
-	Tree_of_segment_on_sum();
+	Tree_of_segment_on_sum(int);
 	~Tree_of_segment_on_sum();
-	void build_tree(int [], int, int, int);
+	void build_tree(int*, int, int, int);
 	int sum_of_tree(int, int, int, int, int);
 	void update_tree(int, int, int, int, int);
- 
+
 };
- 
-Tree_of_segment_on_sum::Tree_of_segment_on_sum() {
- 
+
+Tree_of_segment_on_sum::Tree_of_segment_on_sum(int n) {
+	delete[] tree;
+	tree = new int[4 * n + 1];
 }
+
 Tree_of_segment_on_sum::~Tree_of_segment_on_sum() {
- 
+	delete[] tree;
 }
-void Tree_of_segment_on_sum::build_tree(int a[], int v, int left, int right) {
+
+void Tree_of_segment_on_sum::build_tree(int* a, int v, int left, int right) {
 	if (left == right) {
 		if (left % 2 == 1) tree[v] = a[left]; else tree[v] = -a[left];
 	}
@@ -35,7 +38,7 @@ int Tree_of_segment_on_sum::sum_of_tree(int v, int left, int right, int l, int r
 	if (l == left && r == right) return tree[v];
 	return sum_of_tree(v * 2, left, (left + right) / 2, l, min(r, (left + right) / 2)) + sum_of_tree(v * 2 + 1, (left + right) / 2 + 1, right, max(l, (left + right) / 2 + 1), r);
 }
- 
+
 void Tree_of_segment_on_sum::update_tree(int v, int left, int right, int ind, int change) {
 	if (left == right) tree[v] = change;
 	else {
@@ -44,18 +47,19 @@ void Tree_of_segment_on_sum::update_tree(int v, int left, int right, int ind, in
 		tree[v] = tree[v * 2] + tree[v * 2 + 1];
 	}
 }
- 
+
 int main() {
 	ios_base::sync_with_stdio(false);
 	cin.tie(nullptr);
 	cout.tie(nullptr);
- 
-	Tree_of_segment_on_sum tr;
+
 	int n, k, c;
 	cin >> n;
-	int vv[100001];
+	int* vv = new int[n+1];
+	Tree_of_segment_on_sum tr(n);
 	for (int i = 1; i <= n; ++i) cin >> vv[i];
 	tr.build_tree(vv, 1, 1, n);
+	delete[] vv;
 	int x, y, z;
 	cin >> k;
 	for (int i = 0; i < k; ++i) {
