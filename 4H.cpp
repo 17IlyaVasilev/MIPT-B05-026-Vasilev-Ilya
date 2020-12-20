@@ -1,19 +1,20 @@
 #include <iostream>
 #include <vector>
 #include <cmath>
- 
+
 using namespace std;
- 
+
+const long long INF = 1000000001;
+
 class Sparse_Table {
 private:
 	vector<vector<pair<long long, long long>>> st;
 	vector<long long> degree;
 public:
-	Sparse_Table operator =(Sparse_Table) = delete;
-	Sparse_Table(vector<pair<long long, long long>>&);
+	Sparse_Table(const vector<pair<long long, long long>>&);
 	long long sth(long long, long long);
 };
-Sparse_Table::Sparse_Table(vector<pair<long long, long long>>& v) {
+Sparse_Table::Sparse_Table(const vector<pair<long long, long long>>& v) {
 	st.push_back(v);
 	long long k = 1;
 	long long s = 2;
@@ -30,26 +31,26 @@ Sparse_Table::Sparse_Table(vector<pair<long long, long long>>& v) {
 	degree.push_back(1);
 	for (long long i = 1; i < st.size(); ++i) degree.push_back(degree[i - 1] * 2);
 }
- 
+
 long long Sparse_Table::sth(long long l, long long r) {
 	long long k = log2(r - l + 1);
 	long long s = degree[k];
 	if (st[k][l].first == st[k][r - s + 1].first) return min(st[k][l].second, st[k][r - s + 1].second);
 	else return min(max(st[k][l].first, st[k][r - s + 1].first), min(st[k][l].second, st[k][r - s + 1].second));
 }
- 
+
 int main() {
 	ios_base::sync_with_stdio(false);
 	cin.tie(nullptr);
 	cout.tie(nullptr);
- 
+
 	long long n, x, m;
 	cin >> n >> m;
 	vector<pair<long long, long long>> v(n + 1);
 	for (long long i = 1; i <= n; ++i) {
 		cin >> x;
 		v[i].first = x;
-		v[i].second = 1000000001;
+		v[i].second = INF;
 	}
 	Sparse_Table ST(v);
 	long long l, r;
