@@ -15,48 +15,48 @@ private:
     };
 
     size_t byte_number = 1;
-    FixAllocNode* zero_fix_alloc_node;
+    FixAllocNode* first_free;
     vector<FixAllocNode*> byte_pools;
 
     void makepool() {
         if (byte_number < 64) byte_number *= 2;
-        zero_fix_alloc_node = new FixAllocNode[byte_number];
-        byte_pools.push_back(zero_fix_alloc_node);
+        first_free = new FixAllocNode[byte_number];
+        byte_pools.push_back(first_free);
 
         for (size_t i = 0; i < byte_number; ++i) {
-            zero_fix_alloc_node[i].next = &zero_fix_alloc_node[i + 1];
+            first_free[i].next = &first_free[i + 1];
         }
 
-        zero_fix_alloc_node[byte_number - 1].next = nullptr;
+        first_free[byte_number - 1].next = nullptr;
     }
 
 public:
     FixedAllocator() {
         byte_number = 64;
-        zero_fix_alloc_node = new FixAllocNode[byte_number];
-        byte_pools.push_back(zero_fix_alloc_node);
+        first_free = new FixAllocNode[byte_number];
+        byte_pools.push_back(first_free);
 
         for (size_t i = 0; i < byte_number; ++i) {
-            zero_fix_alloc_node[i].next = &zero_fix_alloc_node[i + 1];
+            first_free[i].next = &first_free[i + 1];
         }
 
-        zero_fix_alloc_node[byte_number - 1].next = nullptr;
+        first_free[byte_number - 1].next = nullptr;
     }
 
     FixedAllocator(const FixedAllocator&) = delete;
 
     void* allocate() {
-        if (!zero_fix_alloc_node) makepool();
-        FixAllocNode* result = zero_fix_alloc_node;
-        zero_fix_alloc_node = zero_fix_alloc_node->next;
+        if (!first_free) makepool();
+        FixAllocNode* result = first_free;
+        first_free = first_free->next;
 
         return static_cast<void*>(result);
     }
 
     void deallocate(void* x) {
         FixAllocNode* node = static_cast<FixAllocNode*>(x);
-        node->next = zero_fix_alloc_node;
-        zero_fix_alloc_node = node;
+        node->next = first_free;
+        first_free = node;
     }
 
     ~FixedAllocator() {
@@ -114,7 +114,7 @@ public:
         }
         else {
 
-            return std::allocator<T>().allocate(length);
+            return allocator<T>().allocate(length);
         }
     }
 
@@ -129,7 +129,7 @@ public:
         }
         else {
 
-            return std::allocator<T>().deallocate(ptr, length);
+            return allocator<T>().deallocate(ptr, length);
         }
     }
 
