@@ -1,4 +1,4 @@
-﻿#include <iostream>
+#include <iostream>
 #include <string>
 #include <vector>
 
@@ -15,48 +15,48 @@ private:
     };
 
     size_t byte_number = 1;
-    FixAllocNode* first_free;
+    FixAllocNode* zero_fix_alloc_node;
     vector<FixAllocNode*> byte_pools;
 
     void makepool() {
         if (byte_number < 64) byte_number *= 2;
-        first_free = new FixAllocNode[byte_number];
-        byte_pools.push_back(first_free);
+        zero_fix_alloc_node = new FixAllocNode[byte_number];
+        byte_pools.push_back(zero_fix_alloc_node);
 
         for (size_t i = 0; i < byte_number; ++i) {
-            first_free[i].next = &first_free[i + 1];
+            zero_fix_alloc_node[i].next = &zero_fix_alloc_node[i + 1];
         }
 
-        first_free[byte_number - 1].next = nullptr;
+        zero_fix_alloc_node[byte_number - 1].next = nullptr;
     }
 
 public:
     FixedAllocator() {
         byte_number = 64;
-        first_free = new FixAllocNode[byte_number];
-        byte_pools.push_back(first_free);
+        zero_fix_alloc_node = new FixAllocNode[byte_number];
+        byte_pools.push_back(zero_fix_alloc_node);
 
         for (size_t i = 0; i < byte_number; ++i) {
-            first_free[i].next = &first_free[i + 1];
+            zero_fix_alloc_node[i].next = &zero_fix_alloc_node[i + 1];
         }
 
-        first_free[byte_number - 1].next = nullptr;
+        zero_fix_alloc_node[byte_number - 1].next = nullptr;
     }
 
     FixedAllocator(const FixedAllocator&) = delete;
 
     void* allocate() {
-        if (!first_free) makepool();
-        FixAllocNode* result = first_free;
-        first_free = first_free->next;
+        if (!zero_fix_alloc_node) makepool();
+        FixAllocNode* result = zero_fix_alloc_node;
+        zero_fix_alloc_node = zero_fix_alloc_node->next;
 
         return static_cast<void*>(result);
     }
 
     void deallocate(void* x) {
         FixAllocNode* node = static_cast<FixAllocNode*>(x);
-        node->next = first_free;
-        first_free = node;
+        node->next = zero_fix_alloc_node;
+        zero_fix_alloc_node = node;
     }
 
     ~FixedAllocator() {
@@ -338,149 +338,8 @@ public:
 
     using iterator = common_iterator<false>;
     using const_iterator = common_iterator<true>;
-
-    template<bool IsConst>
-    struct common_reverse_iterator {
-        using T_type = conditional_t<IsConst, const T&, T&>;
-        using T_ptr_type = conditional_t<IsConst, const T*, T*>;
-        using value_type = T;
-        using pointer = T_ptr_type;
-        using reference = T_type;
-        using difference_type = ptrdiff_t;
-        using iterator_category = bidirectional_iterator_tag;
-        BaseNode* ptr;
-
-        common_reverse_iterator(BaseNode* temp_ptr) {
-            ptr = temp_ptr;
-        }
-
-        common_reverse_iterator(const iterator& iter) {
-            ptr = iter.ptr;
-        }
-
-        common_reverse_iterator(const const_iterator& iter) {
-            ptr = iter.ptr;
-        }
-
-        common_reverse_iterator(const common_reverse_iterator& iter) {
-            ptr = iter.ptr;
-        }
-
-        /*common_reverse_iterator& operator= (const common_reverse_iterator& iter) {
-            ptr = iter.ptr;
-
-            return (*this);
-        }*/
-
-        operator common_reverse_iterator<true>() {
-            auto copy = common_reverse_iterator<true>(ptr);
-
-            return copy;
-        }
-
-        common_reverse_iterator& operator= (const int& x) {
-            ptr.key = x;
-
-            return (*this);
-        }
-
-        bool operator==(const common_reverse_iterator<true>& iter) {
-
-            return (ptr == iter.ptr);
-        }
-
-        bool operator!=(const common_reverse_iterator<true>& iter) {
-
-            return (ptr != iter.ptr);
-        }
-
-        bool operator==(const common_reverse_iterator<false>& iter) {
-
-            return (ptr == iter.ptr);
-        }
-
-        bool operator!=(const common_reverse_iterator<false>& iter) {
-
-            return (ptr != iter.ptr);
-        }
-
-        common_reverse_iterator operator--(int) {
-            common_iterator temp_copy = *this;
-            --(*this);
-
-            return (temp_copy);
-        }
-
-        common_reverse_iterator& operator--() {
-            ptr = ptr->right;
-
-            return (*this);
-        }
-
-        common_reverse_iterator& operator++() {
-            ptr = ptr->left;
-
-            return (*this);
-        }
-
-        common_reverse_iterator operator++(int) {
-            common_iterator temp_copy = *this;
-            ++(*this);
-
-            return (temp_copy);
-        }
-
-        common_reverse_iterator& operator+=(const int& x) {
-            for (size_t i = 0; i < size_t(x); ++i)
-                ++(*this);
-
-            return (*this);
-        }
-
-        common_reverse_iterator& operator-=(const int& x) {
-            for (size_t i = 0; i < size_t(x); ++i)
-                --(*this);
-
-            return (*this);
-        }
-
-        common_reverse_iterator operator+ (const int& x) {
-            auto temp_copy = *this;
-            temp_copy += x;
-
-            return (temp_copy);
-        }
-
-        common_reverse_iterator operator- (const int& x) {
-            auto temp_copy = *this;
-            temp_copy -= x;
-
-            return (temp_copy);
-        }
-
-        T_type operator*() {
-
-            return (reinterpret_cast<Node*>(ptr)->key);
-        }
-
-        Node* operator->() {
-
-            return ptr;
-        }
-
-        iterator base() {
-
-            return (iterator(ptr) + 1);
-        }
-
-        const_iterator base() const {
-
-            return (const_iterator(ptr) + 1);
-        }
-    };
-
-    using reverse_iterator = common_reverse_iterator<false>;
-    using const_reverse_iterator = common_reverse_iterator<true>;
+    using reverse_iterator = reverse_iterator<iterator>;
+    using const_reverse_iterator = reverse_iterator<const_iterator>;
 
     iterator begin() {
 
